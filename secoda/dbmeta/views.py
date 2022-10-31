@@ -23,4 +23,4 @@ def get_pg_meta_data(request):
     print(pg_meta_data)
 
 
-    return JsonResponse(pg_meta_data, safe=False)  #HttpResponse("table meta data")
+    return JsonResponse(pg_meta_data, safe=False) 

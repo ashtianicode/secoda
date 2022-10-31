@@ -1,25 +1,21 @@
 import json 
+from sqlalchemy import create_engine
 
 
 class DBMetaData():
     def __init__(self,database):
-        import psycopg2
         self.database = database
-        self.conn = psycopg2.connect(database= database, user="postgres" ,password= "postgres",host="localhost")
-
+        self.engine = create_engine(f'postgresql+psycopg2://postgres:postgres@localhost/{database}')
 
     def exectute_query(self,q):
-        cur = self.conn.cursor()
-        cur.execute(q, ('BADGES_SFR',)) 
-        results = cur.fetchall()
-        return results
+        results = self.engine.execute(q, ('BADGES_SFR',))
+        return results.fetchall()
 
     def get_tables(self):
         q = "select * from information_schema.tables"
         results = self.exectute_query(q)   
         tables_list =  [ table[2] for table in  results]
         return tables_list
-
 
     def get_schema_list(self,table):
         """
@@ -37,7 +33,6 @@ class DBMetaData():
         """
         result = self.exectute_query(q)        
         return result
-
 
 
     def get_num_rows(self,table):
