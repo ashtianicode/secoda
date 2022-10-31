@@ -3,9 +3,9 @@ from sqlalchemy import create_engine
 
 
 class DBMetaData():
-    def __init__(self,database):
-        self.database = database
-        self.engine = create_engine(f'postgresql+psycopg2://postgres:postgres@localhost/{database}')
+    def __init__(self,db_conn_string):
+        self.database = db_conn_string.split("/")[-1]
+        self.engine = create_engine(db_conn_string)
 
     def exectute_query(self,q):
         results = self.engine.execute(q, ('BADGES_SFR',))
