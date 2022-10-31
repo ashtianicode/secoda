@@ -1,22 +1,11 @@
-
-
-# TableMetadata = {
-# 	columns: List[ColumnMetadata]
-# 	num_rows: int
-# 	schema: str
-# 	database: str
-# }
-
-# ColumnMetadata = {
-# 	col_name: str
-# 	col_type: str
-# }
+import json 
 
 
 class DBMetaData():
     def __init__(self,database):
         import psycopg2
-        self.conn = psycopg2.connect(database='carto', user=..., password=...)
+        self.database = database
+        self.conn = psycopg2.connect(database= database, user="postgres" ,password= "postgres",host="localhost")
 
 
     def exectute_query(self,q):
@@ -26,24 +15,37 @@ class DBMetaData():
         return results
 
     def get_tables(self):
-        pass
+        q = "select * from information_schema.tables"
+        results = self.exectute_query(q)   
+        tables_list =  [ table[2] for table in  results]
+        return tables_list
 
 
-    def get_schema(self,table):
+    def get_schema_list(self,table):
+        """
+        Example Output 
+        [('column_a', 'integer', 'YES'),
+        ('column_b', 'boolean', 'NO'),
+        ...,
+        ]
+        """
+        
         q = f"""                              
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns
-        WHERE table_name = {table};
+        WHERE table_name = '{table}';
         """
-        result = self.exectute_query(q)
+        result = self.exectute_query(q)        
         return result
 
 
-    def get_columns(self,table):
-        pass
 
     def get_num_rows(self,table):
-        pass
+        q = "select count(*) from public.backtests"
+        result = self.exectute_query(q)
+        print(result)
+        row_count = int(result[0][0]) if len(result) > 0 else None
+        return row_count
 
 
     def extract_meta_data(self):
@@ -52,26 +54,45 @@ class DBMetaData():
         tables = self.get_tables()
         for table in tables:
             
-            ## create the columns meta data for the table
+            ## create the columns and schema meta data for the table
+            schema_meta_data_list = []
             column_meta_data_list = []
-            columns = self.get_columns(table)
-            for column in columns:
-                column_meta_data = {
-                    "col_name": "str",
-                    "col_type": "str"
+        
+            columns_schema_list = self.get_schema_list(table)
+            for column in columns_schema_list:
+                column_name =     column[0]
+                column_type =     column[1]
+                column_nullable = column[2]
+
+                schema_meta_data = {
+                    "col_name": column_name,
+                    "col_type": column_type,
+                    "col_nullable": column_nullable
                 }
-                column_meta_data_list.append(column_meta_data)
+                schema_meta_data_list.append(schema_meta_data)
 
+            column_meta_data_list = [ {"col_name": col["col_name"], "col_type": col["col_type"]} for col in schema_meta_data_list]
+            schema_meta_data_string = json.dumps(schema_meta_data_list)
 
+            
+            ## get number of rows
+            num_rows = self.get_num_rows(table)
+            
             ## create table metadata
             table_meta_data = {
                 "columns": column_meta_data_list,
-                "num_rows": 42,
-                "schema": "str",
-                "database": "str",
+                "num_rows": num_rows,
+                "schema": schema_meta_data_string,
+                "database": self.database,
              }
 
             table_meta_data_list.append(table_meta_data)
 
         return table_meta_data_list 
         
+
+
+
+
+
+
