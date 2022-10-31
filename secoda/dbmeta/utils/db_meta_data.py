@@ -3,9 +3,19 @@ from sqlalchemy import create_engine
 
 
 class DBMetaData():
-    def __init__(self,db_conn_string):
-        self.database = db_conn_string.split("/")[-1]
-        self.engine = create_engine(db_conn_string)
+    def __init__(self,):
+       pass
+
+    
+    def connect_to_db(self,db_conn_string):
+        try:
+            self.database = db_conn_string.split("/")[-1]
+            self.engine = create_engine(db_conn_string)
+            return "successful_connection", "no logs"
+        except Exception as e:
+            print(e)
+            return "connection_failure" , str(e)
+
 
     def exectute_query(self,q):
         results = self.engine.execute(q, ('BADGES_SFR',))
