@@ -24,7 +24,8 @@ class DBMetaData():
     def get_tables(self):
         q = "select * from information_schema.tables"
         results = self.exectute_query(q)   
-        tables_list =  [ table[2] for table in  results]
+        
+        tables_list =  [ f"{table[1]}.{table[2]}" for table in  results]
         return tables_list
 
     def get_schema_list(self,table):
@@ -39,14 +40,14 @@ class DBMetaData():
         q = f"""                              
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns
-        WHERE table_name = '{table}';
+        WHERE table_name = '{table.split(".")[-1]}';
         """
         result = self.exectute_query(q)        
         return result
 
 
     def get_num_rows(self,table):
-        q = "select count(*) from public.backtests"
+        q = f"select count(*) from {table}"
         result = self.exectute_query(q)
         print(result)
         row_count = int(result[0][0]) if len(result) > 0 else None
@@ -57,6 +58,7 @@ class DBMetaData():
         table_meta_data_list = []
     
         tables = self.get_tables()
+        print(tables)
         for table in tables:
             
             ## create the columns and schema meta data for the table
