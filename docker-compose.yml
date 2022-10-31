@@ -1,5 +1,13 @@
 version: '3.8'
 services:
+
+  django_app: 
+    build:
+      context: secoda
+      target: builder
+    ports: 
+      - '8000:8000'
+
   db:
     image: postgres:14.1-alpine
     restart: always
@@ -10,6 +18,8 @@ services:
       - '5432:5432'
     volumes: 
       - db:/var/lib/postgresql/data
+      - ./populate_pg.sql:/docker-entrypoint-initdb.d/populate_pg.sql
 volumes:
   db:
     driver: local
+    
